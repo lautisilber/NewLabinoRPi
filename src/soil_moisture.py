@@ -1,13 +1,14 @@
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import List, Generator
+from gpio import ADS1015Manager, GPIOAddressManager
 
 
-Callibration_T = Callable[[int], float]
+Callibration_T = Callable[[float], float]
 
 
 class AbstractMultiplexedSensor:
-    def __init__(self, callibration_func: Callable[[int], float], multiplexor_index: int) -> None:
+    def __init__(self, callibration_func: Callibration_T, multiplexor_index: int) -> None:
         self.callibration_func = callibration_func
         self.multiplexor_index = multiplexor_index
     
@@ -30,13 +31,11 @@ class AbstractMultiplexorSensorsManager(ABC):
         self.sensors = { s.multiplexor_index:s for s in sensor_list }
     
     @abstractmethod
-    @staticmethod
-    def _adc_get_func() -> int:
+    def _adc_get_func(self) -> float:
         pass
 
     @abstractmethod
-    @staticmethod
-    def _multiplexor_index_change_func(index: int) -> None:
+    def _multiplexor_index_change_func(self, index: int) -> None:
         pass
 
     def _check_index(self, index: int) -> bool:
@@ -56,10 +55,17 @@ class AbstractMultiplexorSensorsManager(ABC):
 
 
 class MultiplexorSensorsManager(AbstractMultiplexorSensorsManager):
+    def __init__(self, sensor_list: List[AbstractMultiplexedSensor], addr_pins_list: List[int]) -> None:
+        super().__init__(sensor_list)
+        self.ads = ADS1015Manager()
+        self.multiplexor = GPIOAddressManager(addr_pins_list)
+
+        self.ads.add_single_channel_P0()
+
     @staticmethod
-    def _adc_get_func() -> int:
-        return 512
+    def _adc_get_func(self) -> float:
+        return self.ads.read_first_voltage()
     
     @staticmethod
-    def _multiplexor_index_change_func(index: int) -> None:
-        pass
+    def _multiplexor_index_change_func(self, index: int) -> None:
+        self.multiplexor.set_address(index)

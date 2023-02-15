@@ -5,8 +5,8 @@ from urllib.parse import urlparse
 from os import path, listdir
 
 
-host_name = 'localhost'
-server_port = 8080
+host_name = '0.0.0.0'#'localhost'
+server_port = 8765#8080
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -79,18 +79,12 @@ class ThreadedHTTPServer(HTTPServer):
     def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True) -> None:
         super().__init__(server_address, RequestHandlerClass, bind_and_activate)
         self._webserver_thread = threading.Thread(target=self.serve_forever, daemon=True)
-        self._on_close_callback = None
     
     def run_thread(self) -> None:
         self._webserver_thread.start()
     
-    def callback_on_close(self, cb: Callable[[], None]) -> None:
-        self._on_close_callback = cb
-    
     def server_close(self) -> None:
         super().server_close()
-        if self._on_close_callback:
-            self._on_close_callback()
 
 
 def create_web_server() -> ThreadedHTTPServer:
