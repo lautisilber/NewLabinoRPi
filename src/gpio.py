@@ -20,10 +20,11 @@ chan = AnalogIn(ads, ADS.P0)
 
 
 class ADS1015Manager(ADS.ADS1015):
-    def __init__(self) -> None:
+    def __init__(self, simple_init: bool=True) -> None:
         i2c = busio.I2C(board.SCL, board.SDA)
         super().__init__(i2c)
         self.channels: List[AnalogIn] = []
+        self.add_single_channel_P0()
     
     def gain_info(self) -> None:
         print(f'Possible gains: {self.gains}')
@@ -63,29 +64,16 @@ def _get_binary_size(nr: int) -> int:
 
 class GPIOAddressManager:
     def __init__(self, pins: List[int]) -> None:
-        if not all(isinstance(e, int) for e in pins): raise TypeError("Not all elements in pins list were integers")
+        self.set_pins(pins)
+
+    def set_pins(self, pins: List[int]) -> None:
         self.pins = tuple(OutPin(pin) for pin in pins)
-
-        self.addr_to_pin_array: List[Tuple[bool*len(self.pins)]] = []
-        self.max_addr = 0
-        self._recalculate_addresses()
-
-    def _recalculate_addresses(self) -> None:
-        self.addr_to_pin_array: List[Tuple[bool*len(self.pins)]] = []
         self.max_addr = 2**len(self.pins) - 1
-        for addr in range(self.max_addr + 1):
-            bin_addr = format(addr, 'b')
-            pin_array = tuple(d == '1' for d in bin_addr)
-            self.addr_to_pin_array.append(pin_array)
-    
-    def change_pins(self, pins: List[int]) -> None:
-        self.pins = tuple(OutPin(pin) for pin in pins)
-        self._recalculate_addresses()
     
     def set_address(self, addr: int) -> None:
         if 0 > addr or addr > self.max_addr:
             raise Exception(f'Out of bounds address. Max addr = {self.max_addr}. Provided addr = {addr}')
         
-        pin_array = self.addr_to_pin_array[addr]
-        for index, state in enumerate(pin_array):
-            self.pins[index].value = state
+        states = [state == '1' for state in format(addr, f'{len(self.pins)}b')]
+        for i, state in enumerate(states):
+            self.pins[i].value = state
