@@ -63,8 +63,12 @@ def _get_binary_size(nr: int) -> int:
 
 
 class GPIOAddressManager:
-    def __init__(self, pins: List[int]) -> None:
-        self.set_pins(pins)
+    def __init__(self, pins: Optional[List[int]]=None) -> None:
+        self.pins = []
+        self.max_addr = 0
+
+        if pins:
+            self.set_pins(pins)
 
     def set_pins(self, pins: List[int]) -> None:
         self.pins = tuple(OutPin(pin) for pin in pins)
