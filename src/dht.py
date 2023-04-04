@@ -1,32 +1,27 @@
-from abc import ABC, abstractmethod
+import Adafruit_DHT as dht
 from time import time
 
 
-class DHTValues:
-    def __init__(self, humidity: float, temperature: float) -> None:
-        self.humidity = humidity
-        self.temperature = temperature
-
-
-class AbstractDHT(ABC):
+class DHT:
     ACQUISITION_FERQUENCY = 2 # in seconds
 
-    def __init__(self) -> None:
-        self.last_time = 0
-        self.humidity = 0
-        self.temperature = 0
-
-    @abstractmethod
-    def _update_values(self) -> None:
-        pass
-
-    def get_values(self) -> DHTValues:
-        if abs(time() - self.last_time) > AbstractDHT.ACQUISITION_FERQUENCY:
-            self._update_values()
-        return DHTValues(self.humidity, self.temperature)
-
-
-class DHT(AbstractDHT):
-    def _update_values(self) -> None:
-        self.humidity = 11.1
-        self.temperature = 22.2
+    def __init__(self, pin: int) -> None:
+        self.pin = pin
+        self._last_time = 0
+        self._humidity = 0
+        self._temperature = 0
+    
+    def update_values(self) -> None:
+        if abs(time() - self._last_time) > DHT.ACQUISITION_FERQUENCY:
+            h, t = dht.read_retry(dht.DHT11, self.pin)
+            self._last_time = time()
+            if h: self._humidity = h
+            if t: self._temperature = t
+    
+    @property
+    def humidity(self) -> float:
+        return self._humidity
+    
+    @property
+    def temperature(self) -> float:
+        return self._temperature
