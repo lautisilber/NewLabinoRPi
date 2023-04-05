@@ -4,7 +4,7 @@ from dht import DHT
 from save import save
 from time import sleep
 from timer import RepeatedTimer
-
+from dropbox import dropbox_upload_file
 
 fname = 'save.txt'
 ADDR.set_pins([27, 22, 23])
@@ -26,9 +26,13 @@ def measure():
     
     save(fname, soil_hum_readings, hum, temp)
 
+def backup_dropbox():
+    dropbox_upload_file(fname, '/save.txt')
+
 
 def main():
     measure_timer = RepeatedTimer(5, measure)
+    dropbox_timer = RepeatedTimer(15, backup_dropbox)
 
     while True:
         sleep(1)
