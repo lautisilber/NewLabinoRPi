@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from os import path, listdir
 
 
-host_name = '0.0.0.0'#'localhost'
+host_name = 'localhost'#'0.0.0.0'#'localhost'
 server_port = 8765#8080
 
 
@@ -67,7 +67,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         served = self.serve_directory(www)
         if served: return
 
-        if self.path == '/':
+        if self.path == '/' or self.path == '':
             self.send_redirect('/index.html')
         elif self.path == '/test':
             self.html_response('<h1>Test</h1>')
