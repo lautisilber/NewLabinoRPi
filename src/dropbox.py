@@ -2,7 +2,13 @@ import dropbox
 from dropbox.files import WriteMode
 from dropbox.excetpions import ApiError, AuthError
 
+
 TOKEN = ''
+try:
+    with open('db_token.txt', 'r') as f:
+        TOKEN = f.read()
+except:
+    print('No TOKEN found')
 
 
 def dropbox_test_token() -> bool:
