@@ -34,3 +34,7 @@ def dropbox_upload_file(local_path: str, dropbox_path: str, write_mode: str='ove
                 print(err)
             except Exception as err:
                 print(err)
+
+
+if __name__ == '__main__':
+    dropbox_test_token

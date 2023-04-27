@@ -22,8 +22,12 @@ def save(fname: str, soil_hums: List[float], hum: float, temp: float, temps: Opt
     try:
         with open(fname, write_mode) as f:
             if write_mode == 'w':
-                f.write(','.join(header_elems) + '\n')
-            f.write(','.join(entry_elems) + '\n')
+                header = ','.join(header_elems) + '\n'
+                print(header)
+                f.write(header)
+            entry = ','.join(entry_elems) + '\n'
+            print(entry)
+            f.write(entry)
         return True
     except Exception as err:
         print('Coudln\'t save readings')

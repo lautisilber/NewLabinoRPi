@@ -20,11 +20,10 @@ chan = AnalogIn(ads, ADS.P0)
 
 
 class ADS1015Manager(ADS.ADS1015):
-    def __init__(self, simple_init: bool=True) -> None:
+    def __init__(self) -> None:
         i2c = busio.I2C(board.SCL, board.SDA)
         super().__init__(i2c)
         self.channels: List[AnalogIn] = []
-        self.add_single_channel_P0()
     
     def gain_info(self) -> None:
         print(f'Possible gains: {self.gains}')
@@ -54,6 +53,22 @@ class ADS1015Manager(ADS.ADS1015):
         if len(self.channels) > 1:
             print('Warning. Many channels were set up. reading from the first one...')
         return self.channels[0].voltage
+    
+    def read_channel(self, index: int) -> float:
+        if not self.channels:
+            raise Exception('No channels were set up')
+        if index < 0 or index >= len(self.channels):
+            raise Exception(f'Tried to read channel {index} when only {len(self.channels)} exist')
+        return self.channels[index].voltage
+    
+    def add_first_single(self) -> None:
+        self.add_single_channel_P0()
+    
+    def add_all_single(self) -> None:
+        self.add_single_channel_P0()
+        self.add_single_channel_P1()
+        self.add_single_channel_P2()
+        self.add_single_channel_P3()
 
 
 

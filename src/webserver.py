@@ -3,10 +3,12 @@ import threading
 from typing import Callable
 from urllib.parse import urlparse
 from os import path, listdir
+import os
+import shutil
 
 
 host_name = '0.0.0.0'#'localhost'
-server_port = 8765#8080
+server_port = 80
 
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -69,6 +71,24 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
 
         if self.path == '/':
             self.send_redirect('/index.html')
+        elif self.path == '/download':
+            try:
+                with open('save.txt', 'rb') as f:
+                    self.send_response(200)
+                    self.send_header("Content-Type", 'application/octet-stream')
+                    self.send_header("Content-Disposition", 'attachment; filename="{}"'.format('save.txt'))
+                    fs = os.fstat(f.fileno())
+                    self.send_header("Content-Length", str(fs.st_size))
+                    self.end_headers()
+                    shutil.copyfileobj(f, self.wfile)
+            except:
+                self.send_error(404, 'File was deleted or not found')
+        elif self.path == '/delete':
+            try:
+                os.remove('save.txt')
+            except:
+                pass
+            self.send_redirect('/index.html')
         elif self.path == '/test':
             self.html_response('<h1>Test</h1>')
         else:
@@ -81,6 +101,7 @@ class ThreadedHTTPServer(HTTPServer):
         self._webserver_thread = threading.Thread(target=self.serve_forever, daemon=True)
     
     def run_thread(self) -> None:
+        print('server started')
         self._webserver_thread.start()
     
     def server_close(self) -> None:
